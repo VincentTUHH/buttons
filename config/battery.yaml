@@ -1,0 +1,5 @@
+/**: # wildcard for the node name
+  ros__parameters:
+    n_cells: 3
+    cell_voltage_low: 3.5
+    cell_voltage_medium: 3.6

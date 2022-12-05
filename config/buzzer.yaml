@@ -1,0 +1,3 @@
+/**: # wildcard for the node name
+  ros__parameters:
+    gpio: 18
