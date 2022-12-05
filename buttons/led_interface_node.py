@@ -17,6 +17,9 @@ class LedInterfaceNode(Node):
         super().__init__(node_name)
         self._ok = False
 
+        self.battery_timeout = False
+        self.arming_timeout = False
+
         self.battery_state = SingleData(BatteryState.UNAVAILABLE)
         self.armed_state = SingleData(value=False)
 
@@ -91,28 +94,38 @@ class LedInterfaceNode(Node):
 
     def update(self):
         now = self.get_clock().now().nanoseconds * 1e-9
-        timed_out = False
+        any_timed_out = False
 
         if self.battery_state.updated:
+            if self.battery_timeout:
+                self.get_logger().info('BatteryState is not timed out anymore.')
+            self.battery_timeout = False
             self.battery_state.updated = False
             self.update_battery()
         else:
             if now - self.battery_state.stamp > self.battery_timeout:
-                self.get_logger().warning('BatteryState timed out.',
-                                          throttle_duration_sec=2.0)
+                any_timed_out = True
+                if not self.battery_timeout:
+                    self.get_logger().warning('BatteryState timed out.',
+                                              throttle_duration_sec=2.0)
                 self.strip.set_battery_undefined()
-                timed_out = True
+                self.battery_timeout = True
 
         if self.armed_state.updated:
+            if self.arming_timeout:
+                self.get_logger().info('Arming State is not timed out anymore')
+            self.arming_timeout = False
             self.armed_state.updated = False
             self.strip.set_arming(now, self.armed_state.value)
         elif now - self.armed_state.stamp > self.arming_timeout:
-            self.get_logger().warning('Arming state timed out.',
-                                      throttle_duration_sec=2.0)
+            any_timed_out = True
+            if not self.arming_timeout:
+                self.get_logger().warning('Arming state timed out.',
+                                          throttle_duration_sec=2.0)
             self.strip.set_arming_state_undefined()
-            timed_out = True
+            self.arming_timeout = True
 
-        self.strip.set_status(not timed_out)
+        self.strip.set_status(not any_timed_out)
 
     def on_shutdown(self):
         self.strip.switch_off()
