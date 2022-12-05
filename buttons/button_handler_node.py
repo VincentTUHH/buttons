@@ -29,11 +29,13 @@ class ButtonHandlerNode(Node):
         self._ok = True
 
     def arm_vehicle(self, state: bool):
-        request = SetBool.Request()
-        request.data = state
         if not self.arming_client.wait_for_service(timeout_sec=0.5):
             srv_name = self.resolve_service_name(self.arming_client.srv_name)
             self.get_logger().error(f'Service [{srv_name}] not available.')
+            return
+        
+        request = SetBool.Request()
+        request.data = state
         response: SetBool.Response = self.arming_client.call(request)
         if response.success:
             self.get_logger().info(
