@@ -31,6 +31,9 @@ class BuzzerInterfaceNode(Node):
                                                     self.on_battery_state, 10)
         self.button_sub = self.create_subscription(Button, 'button',
                                                    self.on_button, 10)
+
+        self.update_timer = self.create_timer(0.1, self.update)
+        self.t_last = self.get_clock().now().nanoseconds * 1e-9
         self._ok = True
 
     def is_okay(self):
@@ -64,6 +67,12 @@ class BuzzerInterfaceNode(Node):
 
     def on_battery_state(self, msg: BatteryState):
         self.battery_low = msg.state == BatteryState.BAD
+
+    def update(self):
+        now = self.get_clock().now().nanoseconds * 1e-9
+        if now - self.t_last > 2.0:
+            self.t_last = now
+            self.buzzer.low_pitch(0.5)
 
     def on_shutdown(self):
         self.buzzer.sad(0.2)
