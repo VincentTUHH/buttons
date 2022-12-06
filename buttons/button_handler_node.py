@@ -33,17 +33,11 @@ class ButtonHandlerNode(Node):
         if not self.arming_client.wait_for_service(timeout_sec=0.5):
             self.get_logger().error(f'Service [{srv_name}] not available.')
             return
-        self.get_logger().info('Service [{srv_name}] is available.')
+        self.get_logger().info(f'Service [{srv_name}] is available.')
         
         request = SetBool.Request()
         request.data = state
-        response: SetBool.Response = self.arming_client.call(request)
-        if response.success:
-            self.get_logger().info(
-                f'Successfully called arming service: {response.message}')
-        else:
-            self.get_logger().warn(
-                f'Failed to call arming service: {response.message}')
+        future = self.arming_client.call_async(request)
 
     def on_button(self, msg: Button):
         if msg.button == self.ARM_BUTTON:
