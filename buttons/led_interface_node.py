@@ -33,7 +33,7 @@ class LedInterfaceNode(Node):
         #     return
 
         self.battery_sub = self.create_subscription(BatteryState,
-                                                    '/battery_state',
+                                                    'battery_state',
                                                     self.on_battery_state, 1)
         self.arming_state_sub = self.create_subscription(
             Bool, '/arming_state', self.on_arming_state, 1)
