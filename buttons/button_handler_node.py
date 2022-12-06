@@ -7,7 +7,7 @@ from std_srvs.srv import SetBool
 
 class ButtonHandlerNode(Node):
     ARM_BUTTON = 0
-    DISARM_BUTTON = 0
+    DISARM_BUTTON = 1
 
     def __init__(self, node_name: str):
         super().__init__(node_name)
