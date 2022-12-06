@@ -33,7 +33,8 @@ class BuzzerInterfaceNode(Node):
                                                    self.on_button, 10)
 
         self.update_timer = self.create_timer(0.1, self.update)
-        self.t_last = self.get_clock().now().nanoseconds * 1e-9
+        self.t_last_beep = self.get_clock().now().nanoseconds * 1e-9
+        self.t_last_battery_update = self.t_last_beep
         self._ok = True
 
     def is_okay(self):
@@ -67,12 +68,20 @@ class BuzzerInterfaceNode(Node):
 
     def on_battery_state(self, msg: BatteryState):
         self.battery_low = msg.state == BatteryState.BAD
+        self.t_last_battery_update = self.get_clock().now().nanoseconds * 1e-9
 
     def update(self):
         now = self.get_clock().now().nanoseconds * 1e-9
-        if now - self.t_last > 2.0:
-            self.t_last = now
-            self.buzzer.low_pitch(0.5)
+
+        # make sure to stop making the alert beep, if no messages arrive
+        if now - self.t_last_battery_update > 2.0:
+            self.battery_low = False
+            return
+        
+        if now - self.t_last_beep > 2.0:
+            if self.battery_low:
+                self.t_last_beep = now
+                self.buzzer.low_pitch(0.5)
 
     def on_shutdown(self):
         self.buzzer.sad(0.2)
