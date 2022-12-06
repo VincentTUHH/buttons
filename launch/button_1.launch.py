@@ -7,7 +7,7 @@ def generate_launch_description():
     package_name = 'buttons'
     package_path = get_package_share_path(package_name)
     default_vehicle_name = 'uuv00'
-    default_button_config_file = package_path / 'config/button_0.yaml'
+    default_button_config_file = package_path / 'config/button_1.yaml'
     default_buzzer_config_file = package_path / 'config/buzzer.yaml'
     default_battery_config_file = package_path / 'config/battery.yaml'
 
