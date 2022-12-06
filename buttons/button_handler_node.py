@@ -46,8 +46,10 @@ class ButtonHandlerNode(Node):
 
     def on_button(self, msg: Button):
         if msg.button == self.ARM_BUTTON:
+            self.get_logger().info('Trying to arm the vehicle.')
             self.arm_vehicle(True)
         elif msg.button == self.DISARM_BUTTON:
+            self.get_logger().info('Trying to disarm the vehicle.')
             self.arm_vehicle(False)
         else:
             self.get_logger().info(f'Unhandled button pressed: {msg.button}')

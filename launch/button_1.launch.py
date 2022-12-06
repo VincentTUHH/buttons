@@ -42,6 +42,11 @@ def generate_launch_description():
         launch.substitutions.LaunchConfiguration('vehicle_name'),
         '/battery_voltage',
     ]
+    arming_state_topic = [
+        '/',
+        launch.substitutions.LaunchConfiguration('vehicle_name'),
+        '/arming_state',
+    ]
 
     namespace_group = launch.actions.GroupAction([
         launch_ros.actions.PushRosNamespace('button_1'),
@@ -61,6 +66,10 @@ def generate_launch_description():
             output='screen'),
         launch_ros.actions.Node(package=package_name,
                                 executable='led_interface',
+                                remappings=[
+                                    ('/arming_state', arming_state_topic),
+                                    ('/battery_voltage', battery_voltage_topic),
+                                ],
                                 output='screen'),
         launch_ros.actions.Node(package=package_name,
                                 executable='button_handler',
