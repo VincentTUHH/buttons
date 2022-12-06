@@ -43,7 +43,7 @@ class ButtonInterfaceNode(Node):
 
     def init_params(self):
         descriptor = rcl_interfaces.msg.ParameterDescriptor()
-        descriptor.name = '~/gpios'
+        descriptor.name = 'gpios'
         descriptor.description = ('GPIOs to use as inputs.')
         descriptor.read_only = True
         descriptor.type = (
