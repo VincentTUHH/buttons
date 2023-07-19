@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import rclpy
 import rcl_interfaces.msg
 from rclpy.exceptions import InvalidParameterTypeException
