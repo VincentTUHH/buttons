@@ -12,7 +12,7 @@ class MainWidget(QtWidgets.QWidget):
             widget = OverviewWidget(name)
             self.overview_widgets.append(widget)
             layout.addWidget(widget)
-        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(0)
 
         self.setLayout(layout)
