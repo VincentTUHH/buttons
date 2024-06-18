@@ -1,4 +1,4 @@
-from hippo_common.launch_helper import config_file_path
+from ament_index_python.packages import get_package_share_path
 from launch_ros.actions import Node
 
 from launch import LaunchDescription
@@ -6,7 +6,8 @@ from launch.actions import DeclareLaunchArgument
 
 
 def declare_launch_args(launch_description: LaunchDescription):
-    config_file = config_file_path('buttons', 'gui_config.yaml')
+    pkg = 'buttons'
+    config_file = str(get_package_share_path(pkg) / 'config/gui_config.yaml')
     action = DeclareLaunchArgument(
         name='config_file', default_value=config_file
     )

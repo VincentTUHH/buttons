@@ -15,7 +15,6 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 from ament_index_python.packages import get_package_share_path
-from hippo_common.launch_helper import config_file_path
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
@@ -30,7 +29,8 @@ def declare_launch_args(launch_description: LaunchDescription):
 
 def generate_launch_description():
     pkg = 'buttons'
-    button_config_file = config_file_path(pkg, 'button_0.yaml')
+    package_path = get_package_share_path(pkg)
+    button_config_file = str(package_path / 'config/button_1.yaml')
 
     launch_description = LaunchDescription()
     declare_launch_args(launch_description=launch_description)
