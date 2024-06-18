@@ -36,6 +36,7 @@ class OverviewWidget(QtWidgets.QWidget):
         widget.set_title('State')
         self.panel_grid.replace_widget(0, widget)
         layout.addWidget(self.panel_grid)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
         self.setup_signals()
 

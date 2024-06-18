@@ -22,6 +22,7 @@ class MonoPanelGrid(QtWidgets.QWidget):
                 widget.set_number_none()
                 self.widgets.append(widget)
                 layout.addWidget(widget, row, col)
+        layout.setContentsMargins(0, 0, 0, 0)
         self.setLayout(layout)
 
     @QtCore.pyqtSlot(int, int)
