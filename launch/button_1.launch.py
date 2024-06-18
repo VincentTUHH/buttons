@@ -14,11 +14,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
-from launch import LaunchDescription
-from launch.substitutions import LaunchConfiguration
-from launch.actions import IncludeLaunchDescription, DeclareLaunchArgument
-from launch.launch_description_sources import PythonLaunchDescriptionSource
 from ament_index_python.packages import get_package_share_path
+from hippo_common.launch_helper import config_file_path
+
+from launch import LaunchDescription
+from launch.actions import DeclareLaunchArgument, IncludeLaunchDescription
+from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch.substitutions import LaunchConfiguration
 
 
 def declare_launch_args(launch_description: LaunchDescription):
@@ -27,29 +29,21 @@ def declare_launch_args(launch_description: LaunchDescription):
 
 
 def generate_launch_description():
-    package_name = 'buttons'
-    package_path = get_package_share_path(package_name)
-    button_config_file = str(package_path / 'config/button_1.yaml')
-    buzzer_config_file = str(package_path / 'config/buzzer.yaml')
-    battery_config_file = str(package_path / 'config/battery.yaml')
+    pkg = 'buttons'
+    button_config_file = config_file_path(pkg, 'button_0.yaml')
 
     launch_description = LaunchDescription()
     declare_launch_args(launch_description=launch_description)
-    path = str(package_path / 'launch/generic_button.launch.py')
+    path = str(get_package_share_path(pkg) / 'launch/generic_button.launch.py')
     source = PythonLaunchDescriptionSource(path)
-    action = IncludeLaunchDescription(source,
-                                      launch_arguments={
-                                          'namespace':
-                                          'button_0',
-                                          'vehicle_name':
-                                          LaunchConfiguration('vehicle_name'),
-                                          'button_config_file':
-                                          button_config_file,
-                                          'buzzer_config_file':
-                                          buzzer_config_file,
-                                          'battery_config_file':
-                                          battery_config_file,
-                                      }.items())
+    action = IncludeLaunchDescription(
+        source,
+        launch_arguments={
+            'namespace': 'button_0',
+            'vehicle_name': LaunchConfiguration('vehicle_name'),
+            'button_config_file': button_config_file,
+        }.items(),
+    )
     launch_description.add_action(action)
 
     return launch_description

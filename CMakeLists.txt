@@ -31,10 +31,10 @@ ament_python_install_package(${PROJECT_NAME})
 
 # Install Python executables
 install(PROGRAMS
-  nodes/battery_watcher_node
   nodes/button_handler_node
   nodes/button_interface_node
   nodes/buzzer_interface_node
+  nodes/gui_node
   nodes/led_interface_node
   DESTINATION lib/${PROJECT_NAME}
 )

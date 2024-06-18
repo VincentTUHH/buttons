@@ -1,0 +1,108 @@
+#!/usr/bin/env python3
+
+import sys
+import threading
+from functools import partial
+
+import rcl_interfaces
+import rclpy
+from PyQt5.QtWidgets import QApplication
+from rclpy.exceptions import InvalidParameterTypeException
+from rclpy.node import Node
+from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
+from sensor_msgs.msg import BatteryState
+from std_msgs.msg import Bool
+
+from buttons import gui
+
+
+class GuiNode(Node):
+    def __init__(self):
+        super().__init__(node_name='buttons_gui')
+        self.vehicle_names = []
+        self.subs = {}
+        # if not self.init_params():
+        #    raise RuntimeError('Cannot live without valid paramters...')
+        self.vehicle_names = ['bluerov01', 'bluerov02']
+
+        self.main_widget = gui.MainWidget(self.vehicle_names)
+        self.init_subscriptions()
+        self.main_widget.overview_widgets[0].panel_grid.widgets[
+            0
+        ].enable_flashing(True)
+        self.main_widget.show()
+
+    def init_subscriptions(self):
+        qos = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1,
+        )
+        for i, name in enumerate(self.vehicle_names):
+            subs = {}
+            subs['battery_state'] = self.create_subscription(
+                BatteryState,
+                f'/{name}/battery_state',
+                partial(self.on_battery_state, i=i),
+                qos,
+            )
+            subs['arming_state'] = self.create_subscription(
+                Bool,
+                f'/{name}/arming_state',
+                partial(self.on_arming_state, i=i),
+                qos,
+            )
+            self.subs[name] = subs
+
+    def init_params(self):
+        descriptor = rcl_interfaces.msg.ParameterDescriptor()
+        descriptor.name = 'vehicle_names'
+        descriptor.read_only = True
+        descriptor.type = (
+            rcl_interfaces.msg.ParameterType.PARAMETER_STRING_ARRAY
+        )
+        try:
+            param = self.declare_parameter(
+                'vehicle_names', descriptor=descriptor
+            )
+        except InvalidParameterTypeException as e:
+            self.get_logger().fata(f'{e}')
+            return False
+        if param.type_ == rclpy.Parameter.Type.NOT_SET:
+            self.get_logger().fatal(f'Required parameter {param.name} not set.')
+            return False
+
+        self.vehicle_names = param.value
+        self.get_logger().info(f'{param.name}={param.value}')
+        return True
+
+    def on_battery_state(self, msg: BatteryState, i):
+        widget = self.main_widget.overview_widgets[i]
+
+        cell_voltage = round(min(msg.cell_voltage), 1)
+        widget.cell_voltage_update.emit(cell_voltage)
+
+        battery_voltage = msg.voltage
+        widget.battery_voltage_update.emit(battery_voltage)
+
+    def on_arming_state(self, msg: Bool, i):
+        widget = self.main_widget.overview_widgets[i]
+        widget.arming_state_update.emit(msg.data)
+
+
+def ros_loop(node):
+    rclpy.spin(node)
+
+
+def main():
+    app = QApplication(sys.argv)
+    rclpy.init()
+    node = GuiNode()
+    ros_thread = threading.Thread(target=ros_loop, args=(node,))
+    ros_thread.daemon = True
+    ros_thread.start()
+    exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()

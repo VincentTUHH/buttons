@@ -1,0 +1,3 @@
+/**: # wildcard for the node name
+  ros__parameters:
+    vehicle_names: ['bluerov01', 'uuv02']

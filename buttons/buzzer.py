@@ -14,13 +14,13 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
-import time
-import pigpio
 import threading
+import time
+
+import pigpio
 
 
 def synced(func):
-
     def wrap(s, *args):
         with s.lock:
             func(s, *args)
@@ -28,8 +28,7 @@ def synced(func):
     return wrap
 
 
-class Buzzer():
-
+class Buzzer:
     def __init__(self, pin):
         self.pin = pin
         self.pi = pigpio.pi()

@@ -16,17 +16,17 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
-import rclpy
 import rcl_interfaces.msg
+import rclpy
+from buttons_msgs.msg import Button
 from rclpy.exceptions import InvalidParameterTypeException
 from rclpy.node import Node
-from buttons_msgs.msg import Button, BatteryState
+from sensor_msgs.msg import BatteryState
 
 from buttons.buzzer import Buzzer
 
 
 class BuzzerInterfaceNode(Node):
-
     DEFAULT_PIN = 18
 
     def __init__(self, node_name: str):
@@ -44,11 +44,12 @@ class BuzzerInterfaceNode(Node):
         self.buzzer.happy(0.2)
         self.battery_low = False
 
-        self.battery_sub = self.create_subscription(BatteryState,
-                                                    'battery_state',
-                                                    self.on_battery_state, 10)
-        self.button_sub = self.create_subscription(Button, 'button',
-                                                   self.on_button, 10)
+        self.battery_sub = self.create_subscription(
+            BatteryState, 'battery_state', self.on_battery_state, 10
+        )
+        self.button_sub = self.create_subscription(
+            Button, 'button', self.on_button, 10
+        )
 
         self.update_timer = self.create_timer(0.1, self.update)
         self.t_last_beep = self.get_clock().now().nanoseconds * 1e-9
@@ -61,13 +62,13 @@ class BuzzerInterfaceNode(Node):
     def init_params(self):
         descriptor = rcl_interfaces.msg.ParameterDescriptor()
         descriptor.name = 'buzzer_gpio'
-        descriptor.description = ('GPIO used for controlling the buzzer.')
+        descriptor.description = 'GPIO used for controlling the buzzer.'
         descriptor.read_only = True
         descriptor.type = rcl_interfaces.msg.ParameterType.PARAMETER_INTEGER
         try:
-            param = self.declare_parameter(descriptor.name,
-                                           value=self.DEFAULT_PIN,
-                                           descriptor=descriptor)
+            param = self.declare_parameter(
+                descriptor.name, value=self.DEFAULT_PIN, descriptor=descriptor
+            )
         except InvalidParameterTypeException as e:
             self.get_logger().fatal(f'{e}')
             return False
@@ -95,7 +96,7 @@ class BuzzerInterfaceNode(Node):
         if now - self.t_last_battery_update > 2.0:
             self.battery_low = False
             return
-        
+
         if now - self.t_last_beep > 2.0:
             if self.battery_low:
                 self.t_last_beep = now

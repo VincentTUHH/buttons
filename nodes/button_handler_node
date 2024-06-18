@@ -17,9 +17,9 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 import rclpy
-from rclpy.node import Node
-from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from buttons_msgs.msg import Button
+from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.node import Node
 from std_srvs.srv import SetBool
 
 
@@ -35,14 +35,16 @@ class ButtonHandlerNode(Node):
         self.message_cb_group = MutuallyExclusiveCallbackGroup()
 
         self.arming_client = self.create_client(
-            SetBool, '/arm', callback_group=self.service_cb_group)
+            SetBool, '/arm', callback_group=self.service_cb_group
+        )
 
         self.button_sub = self.create_subscription(
             Button,
             'button',
             self.on_button,
             10,
-            callback_group=self.message_cb_group)
+            callback_group=self.message_cb_group,
+        )
 
         self._ok = True
 
@@ -52,10 +54,10 @@ class ButtonHandlerNode(Node):
             self.get_logger().error(f'Service [{srv_name}] not available.')
             return
         self.get_logger().info(f'Service [{srv_name}] is available.')
-        
+
         request = SetBool.Request()
         request.data = state
-        future = self.arming_client.call_async(request)
+        self.arming_client.call_async(request)
 
     def on_button(self, msg: Button):
         if msg.button == self.ARM_BUTTON:

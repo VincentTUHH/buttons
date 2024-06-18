@@ -16,19 +16,18 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
+import os
+from typing import List
+
 import pigpio
 import rcl_interfaces.msg
 import rclpy
+from buttons_msgs.msg import Button
 from rclpy.exceptions import InvalidParameterTypeException
 from rclpy.node import Node
-from typing import List
-import os
-
-from buttons_msgs.msg import Button
 
 
 class ButtonInterfaceNode(Node):
-
     def __init__(self, node_name: str) -> None:
         super().__init__(node_name)
         self._ok = False
@@ -62,13 +61,15 @@ class ButtonInterfaceNode(Node):
     def init_params(self):
         descriptor = rcl_interfaces.msg.ParameterDescriptor()
         descriptor.name = 'gpios'
-        descriptor.description = ('GPIOs to use as inputs.')
+        descriptor.description = 'GPIOs to use as inputs.'
         descriptor.read_only = True
         descriptor.type = (
-            rcl_interfaces.msg.ParameterType.PARAMETER_INTEGER_ARRAY)
+            rcl_interfaces.msg.ParameterType.PARAMETER_INTEGER_ARRAY
+        )
         try:
-            param = self.declare_parameter(descriptor.name,
-                                           descriptor=descriptor)
+            param = self.declare_parameter(
+                descriptor.name, descriptor=descriptor
+            )
         except InvalidParameterTypeException as e:
             self.get_logger().fatal(f'{e}')
             return False
@@ -90,7 +91,8 @@ class ButtonInterfaceNode(Node):
         except ValueError:
             self.get_logger().error(
                 f'Button at GPIO {gpio} pressed, but it is not in list of known'
-                ' GPIOs')
+                ' GPIOs'
+            )
         msg = Button()
         msg.header.frame_id = os.path.basename(self.get_name())
         msg.button = index

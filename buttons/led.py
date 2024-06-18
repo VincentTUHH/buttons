@@ -16,7 +16,8 @@
 
 import threading
 import time
-from rpi_ws281x import PixelStrip, Color
+
+from rpi_ws281x import Color, PixelStrip
 
 LED_COUNT = 4
 LED_PIN = 10
@@ -26,7 +27,7 @@ LED_INVERT = False
 LED_CHANNEL = 0
 
 
-class Strip():
+class Strip:
     STATUS_INDEX = 0
     ARMING_INDEX = 1
     BATTERY_INDEX = 2
@@ -45,8 +46,15 @@ class Strip():
 
     def __init__(self):
         self.lock = threading.RLock()
-        self.strip = PixelStrip(LED_COUNT, LED_PIN, LED_FREQ_HZ, LED_DMA,
-                                LED_INVERT, 255, LED_CHANNEL)
+        self.strip = PixelStrip(
+            LED_COUNT,
+            LED_PIN,
+            LED_FREQ_HZ,
+            LED_DMA,
+            LED_INVERT,
+            255,
+            LED_CHANNEL,
+        )
         self.strip.begin()
         self.armed = False
         self.t_arming_blinked = 0.0
@@ -78,9 +86,9 @@ class Strip():
 
     def set_status(self, good=False):
         with self.lock:
-            self.strip.setPixelColorRGB(self.STATUS_INDEX,
-                                        (1 - int(good)) * 254,
-                                        int(good) * 254, 0)
+            self.strip.setPixelColorRGB(
+                self.STATUS_INDEX, (1 - int(good)) * 254, int(good) * 254, 0
+            )
             self.strip.show()
 
     def set_arming(
@@ -117,14 +125,16 @@ class Strip():
 
     def set_battery_good(self):
         with self.lock:
-            self.strip.setPixelColor(self.BATTERY_INDEX,
-                                     self.COLOR_BATTERY_GOOD)
+            self.strip.setPixelColor(
+                self.BATTERY_INDEX, self.COLOR_BATTERY_GOOD
+            )
             self.strip.show()
 
     def set_battery_medium(self):
         with self.lock:
-            self.strip.setPixelColor(self.BATTERY_INDEX,
-                                     self.COLOR_BATTERY_MEDIUM)
+            self.strip.setPixelColor(
+                self.BATTERY_INDEX, self.COLOR_BATTERY_MEDIUM
+            )
             self.strip.show()
 
     def set_battery_low(self):

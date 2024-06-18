@@ -20,17 +20,16 @@ import time
 
 import rcl_interfaces.msg
 import rclpy
+from buttons_msgs.msg import BatteryState
 from rclpy.exceptions import InvalidParameterTypeException
 from rclpy.node import Node
 from std_msgs.msg import Bool
 
 from buttons.common import SingleData
 from buttons.led import Strip
-from buttons_msgs.msg import BatteryState
 
 
 class LedInterfaceNode(Node):
-
     def __init__(self, node_name: str):
         super().__init__(node_name)
         self._ok = False
@@ -50,11 +49,12 @@ class LedInterfaceNode(Node):
         # if not self.init_params():
         #     return
 
-        self.battery_sub = self.create_subscription(BatteryState,
-                                                    'battery_state',
-                                                    self.on_battery_state, 1)
+        self.battery_sub = self.create_subscription(
+            BatteryState, 'battery_state', self.on_battery_state, 1
+        )
         self.arming_state_sub = self.create_subscription(
-            Bool, '/arming_state', self.on_arming_state, 1)
+            Bool, '/arming_state', self.on_arming_state, 1
+        )
 
         update_frequency = 5.0
         self.update_timer = self.create_timer(1 / update_frequency, self.update)
@@ -64,12 +64,14 @@ class LedInterfaceNode(Node):
         descriptor = rcl_interfaces.msg.ParameterDescriptor()
         descriptor.name = 'vehicle_namespace'
         descriptor.description = (
-            'Name of the vehicle\'s namespace this node is associated with.')
+            "Name of the vehicle's namespace this node is associated with."
+        )
         descriptor.read_only = True
         descriptor.type = rcl_interfaces.msg.ParameterType.PARAMETER_STRING
         try:
-            param = self.declare_parameter(descriptor.name,
-                                           descriptor=descriptor)
+            param = self.declare_parameter(
+                descriptor.name, descriptor=descriptor
+            )
         except InvalidParameterTypeException as e:
             self.get_logger().fatal(f'{e}')
             return False
@@ -108,7 +110,8 @@ class LedInterfaceNode(Node):
             self.get_logger().warning('BatteryState is UNAVAILABLE.')
         else:
             self.get_logger().error(
-                f'Unhandled BatteryState: {self.battery_state.value}')
+                f'Unhandled BatteryState: {self.battery_state.value}'
+            )
 
     def update(self):
         now = self.get_clock().now().nanoseconds * 1e-9
@@ -124,8 +127,9 @@ class LedInterfaceNode(Node):
             if now - self.battery_state.stamp > self.battery_timeout:
                 any_timed_out = True
                 if not self.battery_timed_out:
-                    self.get_logger().warning('BatteryState timed out.',
-                                              throttle_duration_sec=2.0)
+                    self.get_logger().warning(
+                        'BatteryState timed out.', throttle_duration_sec=2.0
+                    )
                 self.strip.set_battery_undefined()
                 self.battery_timed_out = True
 
@@ -138,8 +142,9 @@ class LedInterfaceNode(Node):
         elif now - self.armed_state.stamp > self.arming_timeout:
             any_timed_out = True
             if not self.arming_timed_out:
-                self.get_logger().warning('Arming state timed out.',
-                                          throttle_duration_sec=2.0)
+                self.get_logger().warning(
+                    'Arming state timed out.', throttle_duration_sec=2.0
+                )
             self.strip.set_arming_state_undefined()
             self.arming_timed_out = True
 
