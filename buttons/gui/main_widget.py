@@ -14,3 +14,5 @@ class MainWidget(QtWidgets.QWidget):
             layout.addWidget(widget)
 
         self.setLayout(layout)
+        self.setFixedWidth(320)
+        self.setFixedHeight(240)

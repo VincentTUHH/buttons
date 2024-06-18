@@ -23,7 +23,8 @@ class OverviewWidget(QtWidgets.QWidget):
 
         self.headline = QtWidgets.QLabel(vehicle_name)
         font = self.headline.font()
-        font.setPointSize(18)
+        font.setPointSize(14)
+        self.headline.setStyleSheet('font-weight: bold;')
         self.headline.setFont(font)
         self.headline.setAlignment(QtCore.Qt.AlignCenter)
         layout.addWidget(self.headline)
