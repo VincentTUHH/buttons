@@ -32,7 +32,7 @@ class OverviewWidget(QtWidgets.QWidget):
         size = MonoPanelGrid.Size(1, 3)
         titles = ['Status', 'VBat', 'VCell']
         self.panel_grid = MonoPanelGrid(size=size, titles=titles, parent=self)
-        widget = PanelWidget(self.panel_grid)
+        widget = PanelWidget(self.panel_grid, timeout_ms=1000)
         widget.set_title('State')
         self.panel_grid.replace_widget(0, widget)
         layout.addWidget(self.panel_grid)

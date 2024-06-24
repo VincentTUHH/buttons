@@ -1,3 +1,5 @@
+from functools import wraps
+
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import Qt
 
@@ -7,8 +9,9 @@ class PanelWidget(QtWidgets.QWidget):
     NORMAL_COLOR = QtGui.QColor(100, 149, 237)
     GOOD_COLOR = QtGui.QColor(50, 200, 50)
     WARNING_COLOR = QtGui.QColor(255, 100, 0)
+    TIMED_OUT_COLOR = QtGui.QColor(150, 150, 150)
 
-    def __init__(self, parent=None, inner_widget=None):
+    def __init__(self, parent=None, inner_widget=None, timeout_ms=0):
         super().__init__(parent)
         self._border_width = 2
         self._border_radius = 0
@@ -25,6 +28,13 @@ class PanelWidget(QtWidgets.QWidget):
         self.flash_on_timer.timeout.connect(self.on_flash_on_timer)
         self.flash_off_timer.timeout.connect(self.on_flash_off_timer)
         self.flashing = False
+
+        self.timeout_timer = QtCore.QTimer(self)
+        self.timeout_ms = timeout_ms
+        self.timed_out = False
+        self.timeout_timer.timeout.connect(self.on_timeout)
+        if self.timeout_ms > 0:
+            self.timeout_timer.start(timeout_ms)
 
         if inner_widget:
             self.inner_widget = inner_widget
@@ -104,6 +114,18 @@ class PanelWidget(QtWidgets.QWidget):
     def set_title(self, title):
         self._title_text = title
 
+    def reset_timeout(fun):
+        @wraps(fun)
+        def _reset_timeout(self, *args, **kwargs):
+            self.timeout_timer.stop()
+            self.timed_out = False
+            if self.timeout_ms > 0:
+                self.timeout_timer.start(self.timeout_ms)
+            return fun(self, *args, **kwargs)
+
+        return _reset_timeout
+
+    @reset_timeout
     @QtCore.pyqtSlot(str)
     def set_text(self, value):
         self.inner_widget.setText(value)
@@ -152,6 +174,14 @@ class PanelWidget(QtWidgets.QWidget):
         self.setPalette(palette)
         self.setStyleSheet('background-color:none;')
         self.flash_off_timer.stop()
+
+    @QtCore.pyqtSlot()
+    def on_timeout(self):
+        if not self.timed_out:
+            self.timed_out = True
+            self.enable_flashing(False)
+            self.inner_widget.setText('n/a')
+            self._set_color(self.TIMED_OUT_COLOR)
 
     @QtCore.pyqtSlot()
     def set_error_color(self):

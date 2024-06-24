@@ -18,7 +18,7 @@ class MonoPanelGrid(QtWidgets.QWidget):
         for row in range(size.rows):
             for col in range(size.cols):
                 index = row * size.cols + col
-                widget = MonoPanelWidget(self, titles[index])
+                widget = MonoPanelWidget(self, titles[index], timeout_ms=1000)
                 widget.set_number_none()
                 self.widgets.append(widget)
                 layout.addWidget(widget, row, col)
