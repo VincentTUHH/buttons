@@ -143,7 +143,7 @@ class ButtonHandlerNode(Node):
         return self._ok
 
 
-def spin(executor: SingleThreadedExecutor):
+async def spin(executor: SingleThreadedExecutor):
     while rclpy.ok():
         executor.spin_once()
         await asyncio.sleep(0)
