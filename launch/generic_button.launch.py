@@ -41,6 +41,14 @@ def arming_state_topic():
     return ['/', LaunchConfiguration('vehicle_name'), '/arming_state']
 
 
+def reboot_fcu_service():
+    return ['/', LaunchConfiguration('vehicle_name'), '/fcu_reboot']
+
+
+def restart_ekf2_service():
+    return ['/', LaunchConfiguration('vehicle_name'), '/ekf2_restart']
+
+
 def add_nodes(launch_description: LaunchDescription):
     package_name = 'buttons'
     group = GroupAction(
@@ -72,6 +80,8 @@ def add_nodes(launch_description: LaunchDescription):
                 executable='button_handler_node',
                 remappings=[
                     ('/arm', arming_service_config()),
+                    ('/fcu_reboot', reboot_fcu_service()),
+                    ('/ekf2_restart', restart_ekf2_service()),
                 ],
                 output='screen',
             ),
