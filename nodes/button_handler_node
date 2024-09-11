@@ -16,16 +16,20 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
+import asyncio
+
 import rclpy
 from buttons_msgs.msg import Button
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
 from rclpy.node import Node
-from std_srvs.srv import SetBool
+from std_srvs.srv import SetBool, Trigger
 
 
 class ButtonHandlerNode(Node):
     ARM_BUTTON = 0
     DISARM_BUTTON = 1
+    REBOOT_FCU_BUTTON = 2
+    RESTART_EKF2_BUTTON = 3
 
     def __init__(self, node_name: str):
         super().__init__(node_name)
@@ -37,7 +41,12 @@ class ButtonHandlerNode(Node):
         self.arming_client = self.create_client(
             SetBool, '/arm', callback_group=self.service_cb_group
         )
-
+        self.reboot_client = self.create_client(
+            Trigger, '/fcu_reboot', callback_group=self.service_cb_group
+        )
+        self.restart_ekf2_client = self.create_client(
+            Trigger, '/ekf2_restart', callback_group=self.service_cb_group
+        )
         self.button_sub = self.create_subscription(
             Button,
             'button',
@@ -45,7 +54,6 @@ class ButtonHandlerNode(Node):
             10,
             callback_group=self.message_cb_group,
         )
-
         self._ok = True
 
     def arm_vehicle(self, state: bool):
@@ -59,6 +67,46 @@ class ButtonHandlerNode(Node):
         request.data = state
         self.arming_client.call_async(request)
 
+    def reboot_fcu(self):
+        srv_name = self.resolve_service_name(self.reboot_fcu)
+        if not self.reboot_client.wait_for_service(timeout_sec=0.5):
+            self.get_logger().error(f'Service [{srv_name}] not available.')
+            return
+        self.get_logger().info(f'Service [{srv_name}] is available.')
+        request = Trigger.Request()
+        future = self.reboot_client.call_async(request)
+        try:
+            result: Trigger.Response = await asyncio.wait_for(
+                future, timeout=1.0
+            )
+        except Exception as e:
+            self.get_logger().info(f'Service [{srv_name}] failed: {str(e)}')
+        else:
+            if not result.success:
+                self.get_logger().warn(
+                    f'Could not reboot FCU. Reason: {result.message}'
+                )
+
+    def restart_ekf2(self):
+        srv_name = self.resolve_service_name(self.restart_ekf2_client)
+        if not self.restart_ekf2_client.wait_for_service(timeout_sec=0.5):
+            self.get_logger().error(f'Service [{srv_name}] not available.')
+            return
+        self.get_logger().info(f'Service [{srv_name}] is available.')
+        request = Trigger.Request()
+        future = self.restart_ekf2_client.call_async(request)
+        try:
+            result: Trigger.Response = await asyncio.wait_for(
+                future, timeout=1.0
+            )
+        except Exception as e:
+            self.get_logger().info(f'Service [{srv_name}] failed: {str(e)}')
+        else:
+            if not result.success:
+                self.get_logger().warn(
+                    f'Could not restart ekf2. Reason: {result.message}'
+                )
+
     def on_button(self, msg: Button):
         if msg.button == self.ARM_BUTTON:
             self.get_logger().info('Trying to arm the vehicle.')
@@ -66,6 +114,12 @@ class ButtonHandlerNode(Node):
         elif msg.button == self.DISARM_BUTTON:
             self.get_logger().info('Trying to disarm the vehicle.')
             self.arm_vehicle(False)
+        elif msg.button == self.REBOOT_FCU_BUTTON:
+            self.get_logger().info('Trying to reboot px4')
+            self.reboot_fcu()
+        elif msg.button == self.RESTART_EKF2_BUTTON:
+            self.get_logger().info('Trying to restart EKF2.')
+            self.restart_ekf2()
         else:
             self.get_logger().info(f'Unhandled button pressed: {msg.button}')
 
