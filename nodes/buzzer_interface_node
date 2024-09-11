@@ -85,7 +85,8 @@ class BuzzerInterfaceNode(Node):
             self.buzzer.blip()
 
     def on_battery_state(self, msg: BatteryState):
-        self.battery_low = msg.state == BatteryState.BAD
+        cell_voltage = min(msg.cell_voltage)
+        self.battery_low = cell_voltage <= 3.35
         self.t_last_battery_update = self.get_clock().now().nanoseconds * 1e-9
 
     def update(self):
