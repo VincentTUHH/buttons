@@ -19,6 +19,7 @@ from launch_ros.actions import Node
 
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument
+from launch.substitutions import LaunchConfiguration
 
 
 def declare_launch_args(launch_description: LaunchDescription):
@@ -34,7 +35,7 @@ def add_gui_node():
     return Node(
         package='buttons',
         executable='gui_node',
-        # parameters=[LaunchConfiguration('config_file')],
+        parameters=[LaunchConfiguration('config_file')],
         output='screen',
     )
 

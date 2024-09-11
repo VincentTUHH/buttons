@@ -22,9 +22,9 @@ class GuiNode(Node):
         super().__init__(node_name='buttons_gui')
         self.vehicle_names = []
         self.subs = {}
-        # if not self.init_params():
-        #    raise RuntimeError('Cannot live without valid paramters...')
-        self.vehicle_names = ['bluerov01', 'bluerov02']
+        if not self.init_params():
+            raise RuntimeError('Cannot live without valid paramters...')
+        # self.vehicle_names = ['bluerov01', 'bluerov02']
 
         self.main_widget = gui.MainWidget(self.vehicle_names)
         self.init_subscriptions()
