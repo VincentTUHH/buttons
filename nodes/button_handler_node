@@ -56,7 +56,7 @@ class ButtonHandlerNode(Node):
         )
         self._ok = True
 
-    def arm_vehicle(self, state: bool):
+    async def arm_vehicle(self, state: bool):
         srv_name = self.resolve_service_name(self.arming_client.srv_name)
         if not self.arming_client.wait_for_service(timeout_sec=0.5):
             self.get_logger().error(f'Service [{srv_name}] not available.')
@@ -67,8 +67,8 @@ class ButtonHandlerNode(Node):
         request.data = state
         self.arming_client.call_async(request)
 
-    def reboot_fcu(self):
-        srv_name = self.resolve_service_name(self.reboot_fcu)
+    async def reboot_fcu(self):
+        srv_name = self.resolve_service_name(self.reboot_client.srv_name)
         if not self.reboot_client.wait_for_service(timeout_sec=0.5):
             self.get_logger().error(f'Service [{srv_name}] not available.')
             return
@@ -87,8 +87,8 @@ class ButtonHandlerNode(Node):
                     f'Could not reboot FCU. Reason: {result.message}'
                 )
 
-    def restart_ekf2(self):
-        srv_name = self.resolve_service_name(self.restart_ekf2_client)
+    async def restart_ekf2(self):
+        srv_name = self.resolve_service_name(self.restart_ekf2_client.srv_name)
         if not self.restart_ekf2_client.wait_for_service(timeout_sec=0.5):
             self.get_logger().error(f'Service [{srv_name}] not available.')
             return
@@ -107,19 +107,19 @@ class ButtonHandlerNode(Node):
                     f'Could not restart ekf2. Reason: {result.message}'
                 )
 
-    def on_button(self, msg: Button):
+    async def on_button(self, msg: Button):
         if msg.button == self.ARM_BUTTON:
             self.get_logger().info('Trying to arm the vehicle.')
-            self.arm_vehicle(True)
+            await self.arm_vehicle(True)
         elif msg.button == self.DISARM_BUTTON:
             self.get_logger().info('Trying to disarm the vehicle.')
-            self.arm_vehicle(False)
+            await self.arm_vehicle(False)
         elif msg.button == self.REBOOT_FCU_BUTTON:
             self.get_logger().info('Trying to reboot px4')
-            self.reboot_fcu()
+            await self.reboot_fcu()
         elif msg.button == self.RESTART_EKF2_BUTTON:
             self.get_logger().info('Trying to restart EKF2.')
-            self.restart_ekf2()
+            await self.restart_ekf2()
         else:
             self.get_logger().info(f'Unhandled button pressed: {msg.button}')
 
