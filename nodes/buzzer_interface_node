@@ -64,7 +64,6 @@ class BuzzerInterfaceNode(Node):
         descriptor.name = 'buzzer_gpio'
         descriptor.description = 'GPIO used for controlling the buzzer.'
         descriptor.read_only = True
-        descriptor.type = rcl_interfaces.msg.ParameterType.PARAMETER_INTEGER
         try:
             param = self.declare_parameter(
                 descriptor.name, value=self.DEFAULT_PIN, descriptor=descriptor

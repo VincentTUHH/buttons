@@ -25,6 +25,7 @@ import rclpy
 from buttons_msgs.msg import Button
 from rclpy.exceptions import InvalidParameterTypeException
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 
 
 class ButtonInterfaceNode(Node):
@@ -63,12 +64,11 @@ class ButtonInterfaceNode(Node):
         descriptor.name = 'gpios'
         descriptor.description = 'GPIOs to use as inputs.'
         descriptor.read_only = True
-        descriptor.type = (
-            rcl_interfaces.msg.ParameterType.PARAMETER_INTEGER_ARRAY
-        )
         try:
             param = self.declare_parameter(
-                descriptor.name, descriptor=descriptor
+                descriptor.name,
+                value=Parameter.Type.INTEGER_ARRAY,
+                descriptor=descriptor,
             )
         except InvalidParameterTypeException as e:
             self.get_logger().fatal(f'{e}')

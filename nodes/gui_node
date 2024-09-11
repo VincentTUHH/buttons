@@ -9,6 +9,7 @@ import rclpy
 from PyQt5.QtWidgets import QApplication
 from rclpy.exceptions import InvalidParameterTypeException
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from rclpy.qos import QoSHistoryPolicy, QoSProfile, QoSReliabilityPolicy
 from sensor_msgs.msg import BatteryState
 from std_msgs.msg import Bool
@@ -58,12 +59,11 @@ class GuiNode(Node):
         descriptor = rcl_interfaces.msg.ParameterDescriptor()
         descriptor.name = 'vehicle_names'
         descriptor.read_only = True
-        descriptor.type = (
-            rcl_interfaces.msg.ParameterType.PARAMETER_STRING_ARRAY
-        )
         try:
             param = self.declare_parameter(
-                'vehicle_names', descriptor=descriptor
+                'vehicle_names',
+                value=Parameter.Type.STRING_ARRAY,
+                descriptor=descriptor,
             )
         except InvalidParameterTypeException as e:
             self.get_logger().fata(f'{e}')

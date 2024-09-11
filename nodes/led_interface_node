@@ -23,6 +23,7 @@ import rclpy
 from buttons_msgs.msg import BatteryState
 from rclpy.exceptions import InvalidParameterTypeException
 from rclpy.node import Node
+from rclpy.parameter import Parameter
 from std_msgs.msg import Bool
 
 from buttons.common import SingleData
@@ -67,10 +68,11 @@ class LedInterfaceNode(Node):
             "Name of the vehicle's namespace this node is associated with."
         )
         descriptor.read_only = True
-        descriptor.type = rcl_interfaces.msg.ParameterType.PARAMETER_STRING
         try:
             param = self.declare_parameter(
-                descriptor.name, descriptor=descriptor
+                descriptor.name,
+                value=Parameter.Type.STRING,
+                descriptor=descriptor,
             )
         except InvalidParameterTypeException as e:
             self.get_logger().fatal(f'{e}')
