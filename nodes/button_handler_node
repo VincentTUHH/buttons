@@ -21,6 +21,7 @@ import asyncio
 import rclpy
 from buttons_msgs.msg import Button
 from rclpy.callback_groups import MutuallyExclusiveCallbackGroup
+from rclpy.executors import SingleThreadedExecutor
 from rclpy.node import Node
 from std_srvs.srv import SetBool, Trigger
 
@@ -65,7 +66,19 @@ class ButtonHandlerNode(Node):
 
         request = SetBool.Request()
         request.data = state
-        self.arming_client.call_async(request)
+
+        future = self.arming_client.call_async(request)
+        try:
+            result: SetBool.Response = await asyncio.wait_for(
+                future, timeout=1.0
+            )
+        except Exception as e:
+            self.get_logger().info(f'Service [{srv_name}] failed: {str(e)}')
+        else:
+            if not result.success:
+                self.get_logger().warn(
+                    f'Could not arm/disarm. Reason: {result.message}'
+                )
 
     async def reboot_fcu(self):
         srv_name = self.resolve_service_name(self.reboot_client.srv_name)
@@ -107,7 +120,10 @@ class ButtonHandlerNode(Node):
                     f'Could not restart ekf2. Reason: {result.message}'
                 )
 
-    async def on_button(self, msg: Button):
+    def on_button(self, msg: Button):
+        asyncio.ensure_future(self.handle_button(msg))
+
+    async def handle_button(self, msg: Button):
         if msg.button == self.ARM_BUTTON:
             self.get_logger().info('Trying to arm the vehicle.')
             await self.arm_vehicle(True)
@@ -127,15 +143,24 @@ class ButtonHandlerNode(Node):
         return self._ok
 
 
+def spin(executor: SingleThreadedExecutor):
+    while rclpy.ok():
+        executor.spin_once()
+        await asyncio.sleep(0)
+
+
 def main(args=None):
     rclpy.init(args=args)
     node = ButtonHandlerNode('button_handler')
     if not node.is_okay():
         node.destroy_node()
         return
+    executor = SingleThreadedExecutor()
+    executor.add_node(node)
+    loop = asyncio.get_event_loop()
 
     try:
-        rclpy.spin(node)
+        loop.run_until_complete(spin(executor))
     except KeyboardInterrupt:
         pass
     finally:
