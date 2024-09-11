@@ -39,13 +39,13 @@ class ButtonHandlerNode(Node):
         self.message_cb_group = MutuallyExclusiveCallbackGroup()
 
         self.arming_client = self.create_client(
-            SetBool, '/arm', callback_group=self.service_cb_group
+            SetBool, 'arm', callback_group=self.service_cb_group
         )
         self.reboot_client = self.create_client(
-            Trigger, '/fcu_reboot', callback_group=self.service_cb_group
+            Trigger, 'fcu_reboot', callback_group=self.service_cb_group
         )
         self.restart_ekf2_client = self.create_client(
-            Trigger, '/ekf2_restart', callback_group=self.service_cb_group
+            Trigger, 'ekf2_restart', callback_group=self.service_cb_group
         )
         self.button_sub = self.create_subscription(
             Button,
