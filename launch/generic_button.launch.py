@@ -87,7 +87,7 @@ def add_nodes(launch_description: LaunchDescription):
             executable='button_handler_node',
             remappings=[
                 ('/arm', arming_service_config()),
-                ('arm_manipulator', manipulator_arming_service_config()),
+                ('/arm_manipulator', manipulator_arming_service_config()),
                 ('/fcu_reboot', reboot_fcu_service()),
                 ('/ekf2_restart', restart_ekf2_service()),
             ],
