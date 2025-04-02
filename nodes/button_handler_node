@@ -34,20 +34,27 @@ class ButtonHandlerNode(Node):
 
     def __init__(self, node_name: str):
         super().__init__(node_name)
+        self.declare_parameter('use_manipulator', False)
+        self.use_manipulator = self.get_parameter(
+            'use_manipulator').get_parameter_value().bool_value
+        if self.use_manipulator:
+            self.get_logger().info('Manipulator will be used.')
+        else:
+            self.get_logger().info('Manipulator will NOT be used.')
+
         self._ok = False
 
         self.service_cb_group = MutuallyExclusiveCallbackGroup()
         self.message_cb_group = MutuallyExclusiveCallbackGroup()
 
         self.arming_client = self.create_client(
-            SetBool, '/arm', callback_group=self.service_cb_group
-        )
+            SetBool, '/arm', callback_group=self.service_cb_group)
+        self.manipulator_arming_client = self.create_client(
+            SetBool, '/arm_manipulator', callback_group=self.service_cb_group)
         self.reboot_client = self.create_client(
-            Trigger, '/fcu_reboot', callback_group=self.service_cb_group
-        )
+            Trigger, '/fcu_reboot', callback_group=self.service_cb_group)
         self.restart_ekf2_client = self.create_client(
-            Trigger, '/ekf2_restart', callback_group=self.service_cb_group
-        )
+            Trigger, '/ekf2_restart', callback_group=self.service_cb_group)
         self.button_sub = self.create_subscription(
             Button,
             'button',
@@ -69,15 +76,36 @@ class ButtonHandlerNode(Node):
 
         future = self.arming_client.call_async(request)
         try:
-            result: SetBool.Response = await asyncio.wait_for(
-                future, timeout=1.0
-            )
+            result: SetBool.Response = await asyncio.wait_for(future,
+                                                              timeout=1.0)
         except Exception as e:
             self.get_logger().info(f'Service [{srv_name}] failed: {str(e)}')
         else:
             if not result.success:
                 self.get_logger().warn(
-                    f'Could not arm/disarm. Reason: {result.message}'
+                    f'Could not arm/disarm. Reason: {result.message}')
+
+    async def arm_manipulator(self, state: bool):
+        srv_name = self.resolve_service_name(
+            self.manipulator_arming_client.srv_name)
+        if not self.manipulator_arming_client.wait_for_service(timeout_sec=0.5):
+            self.get_logger().error(f'Service [{srv_name}] not available.')
+            return
+        self.get_logger().info(f'Service [{srv_name}] is available.')
+
+        request = SetBool.Request()
+        request.data = state
+
+        future = self.manipulator_arming_client.call_async(request)
+        try:
+            result: SetBool.Response = await asyncio.wait_for(future,
+                                                              timeout=1.0)
+        except Exception as e:
+            self.get_logger().info(f'Service [{srv_name}] failed: {str(e)}')
+        else:
+            if not result.success:
+                self.get_logger().warn(
+                    f'Could not arm/disarm manipulator. Reason: {result.message}'
                 )
 
     async def reboot_fcu(self):
@@ -89,16 +117,14 @@ class ButtonHandlerNode(Node):
         request = Trigger.Request()
         future = self.reboot_client.call_async(request)
         try:
-            result: Trigger.Response = await asyncio.wait_for(
-                future, timeout=1.0
-            )
+            result: Trigger.Response = await asyncio.wait_for(future,
+                                                              timeout=1.0)
         except Exception as e:
             self.get_logger().info(f'Service [{srv_name}] failed: {str(e)}')
         else:
             if not result.success:
                 self.get_logger().warn(
-                    f'Could not reboot FCU. Reason: {result.message}'
-                )
+                    f'Could not reboot FCU. Reason: {result.message}')
 
     async def restart_ekf2(self):
         srv_name = self.resolve_service_name(self.restart_ekf2_client.srv_name)
@@ -109,16 +135,14 @@ class ButtonHandlerNode(Node):
         request = Trigger.Request()
         future = self.restart_ekf2_client.call_async(request)
         try:
-            result: Trigger.Response = await asyncio.wait_for(
-                future, timeout=1.0
-            )
+            result: Trigger.Response = await asyncio.wait_for(future,
+                                                              timeout=1.0)
         except Exception as e:
             self.get_logger().info(f'Service [{srv_name}] failed: {str(e)}')
         else:
             if not result.success:
                 self.get_logger().warn(
-                    f'Could not restart ekf2. Reason: {result.message}'
-                )
+                    f'Could not restart ekf2. Reason: {result.message}')
 
     def on_button(self, msg: Button):
         asyncio.ensure_future(self.handle_button(msg))
@@ -127,9 +151,15 @@ class ButtonHandlerNode(Node):
         if msg.button == self.ARM_BUTTON:
             self.get_logger().info('Trying to arm the vehicle.')
             await self.arm_vehicle(True)
+            if self.use_manipulator:
+                self.get_logger().info('Trying to arm the manipulator.')
+                await self.arm_manipulator(True)
         elif msg.button == self.DISARM_BUTTON:
             self.get_logger().info('Trying to disarm the vehicle.')
             await self.arm_vehicle(False)
+            if self.use_manipulator:
+                self.get_logger().info('Trying to disarm the manipulator.')
+                await self.arm_manipulator(False)
         elif msg.button == self.REBOOT_FCU_BUTTON:
             self.get_logger().info('Trying to reboot px4')
             await self.reboot_fcu()
