@@ -8,7 +8,7 @@ from .panel_widget import PanelWidget
 
 class WidgetIndex(IntEnum):
     STATUS = 0
-    MANIPULATOR = 0
+    MANIPULATOR = auto()
     VBAT = auto()
     VCELL = auto()
 
