@@ -44,7 +44,7 @@ class PanelWidget(QtWidgets.QWidget):
             self.inner_widget.setFrameShape(QtWidgets.QFrame.NoFrame)
             self.inner_widget.setAlignment(QtCore.Qt.AlignCenter)
             font = self.inner_widget.font()
-            font.setPointSize(14)
+            font.setPointSize(11)
             self.inner_widget.setFont(font)
         layout = QtWidgets.QVBoxLayout()
         layout.addWidget(self.inner_widget)
@@ -58,9 +58,8 @@ class PanelWidget(QtWidgets.QWidget):
 
     def paintEvent(self, event):
         painter = QtGui.QPainter(self)
-        painter.setRenderHints(
-            QtGui.QPainter.Antialiasing | QtGui.QPainter.TextAntialiasing
-        )
+        painter.setRenderHints(QtGui.QPainter.Antialiasing
+                               | QtGui.QPainter.TextAntialiasing)
 
         self.draw_border(painter)
         self.draw_title(painter)
@@ -95,17 +94,15 @@ class PanelWidget(QtWidgets.QWidget):
         painter.setPen(QtCore.Qt.NoPen)
         painter.setBrush(self._color)
         offset = int(2 * self._border_width / 3)
-        rect = QtCore.QRect(
-            offset, offset, self.width() - offset * 2, self._title_height
-        )
+        rect = QtCore.QRect(offset, offset,
+                            self.width() - offset * 2, self._title_height)
         painter.drawRect(rect)
 
         painter.setPen(self._title_color)
         painter.setFont(self._title_font)
         offset = self._border_width * 3
-        text_rect = QtCore.QRect(
-            offset, 0, self.width() - offset * 2, self._title_height
-        )
+        text_rect = QtCore.QRect(offset, 0,
+                                 self.width() - offset * 2, self._title_height)
         align = Qt.Alignment(Qt.AlignHCenter | Qt.AlignVCenter)
         painter.drawText(text_rect, align, self._title_text)
         painter.restore()
@@ -115,6 +112,7 @@ class PanelWidget(QtWidgets.QWidget):
         self._title_text = title
 
     def reset_timeout(fun):
+
         @wraps(fun)
         def _reset_timeout(self, *args, **kwargs):
             self.timeout_timer.stop()
