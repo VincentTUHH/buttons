@@ -28,9 +28,17 @@ def declare_launch_args(launch_description: LaunchDescription):
     action = DeclareLaunchArgument(name='button_config_file')
     launch_description.add_action(action)
 
+    action = DeclareLaunchArgument(name='use_manipulator',
+                                   default_value='false')
+    launch_description.add_action(action)
+
 
 def arming_service_config():
     return ['/', LaunchConfiguration('vehicle_name'), '/arm']
+
+
+def manipulator_arming_service_config():
+    return ['/', LaunchConfiguration('vehicle_name'), '/arm_manipulator']
 
 
 def battery_voltage_topic():
@@ -51,51 +59,55 @@ def restart_ekf2_service():
 
 def add_nodes(launch_description: LaunchDescription):
     package_name = 'buttons'
-    group = GroupAction(
-        [
-            PushRosNamespace(LaunchConfiguration('namespace')),
-            # Node(
-            #     package=package_name,
-            #     executable='buzzer_interface_node',
-            #     parameters=[LaunchConfiguration('buzzer_config_file')],
-            #     output='screen',
-            # ),
-            Node(
-                package=package_name,
-                executable='button_interface_node',
-                parameters=[LaunchConfiguration('button_config_file')],
-                output='screen',
-            ),
-            # Node(
-            #     package=package_name,
-            #     executable='led_interface_node',
-            #     remappings=[
-            #         ('/arming_state', arming_state_topic()),
-            #         ('/battery_voltage', battery_voltage_topic()),
-            #     ],
-            #     output='screen',
-            # ),
-            Node(
-                package=package_name,
-                executable='button_handler_node',
-                remappings=[
-                    ('/arm', arming_service_config()),
-                    ('/fcu_reboot', reboot_fcu_service()),
-                    ('/ekf2_restart', restart_ekf2_service()),
-                ],
-                output='screen',
-            ),
-            # Node(
-            #     package=package_name,
-            #     executable='battery_watcher_node',
-            #     parameters=[LaunchConfiguration('battery_config_file')],
-            #     remappings=[
-            #         ('/battery_voltage', battery_voltage_topic()),
-            #     ],
-            #     output='screen',
-            # ),
-        ]
-    )
+    group = GroupAction([
+        PushRosNamespace(LaunchConfiguration('namespace')),
+        # Node(
+        #     package=package_name,
+        #     executable='buzzer_interface_node',
+        #     parameters=[LaunchConfiguration('buzzer_config_file')],
+        #     output='screen',
+        # ),
+        Node(
+            package=package_name,
+            executable='button_interface_node',
+            parameters=[LaunchConfiguration('button_config_file')],
+            output='screen',
+        ),
+        # Node(
+        #     package=package_name,
+        #     executable='led_interface_node',
+        #     remappings=[
+        #         ('/arming_state', arming_state_topic()),
+        #         ('/battery_voltage', battery_voltage_topic()),
+        #     ],
+        #     output='screen',
+        # ),
+        Node(
+            package=package_name,
+            executable='button_handler_node',
+            remappings=[
+                ('/arm', arming_service_config()),
+                ('/arm_manipulator', manipulator_arming_service_config()),
+                ('/fcu_reboot', reboot_fcu_service()),
+                ('/ekf2_restart', restart_ekf2_service()),
+            ],
+            parameters=[
+                {
+                    'use_manipulator': LaunchConfiguration('use_manipulator')
+                },
+            ],
+            output='screen',
+        ),
+        # Node(
+        #     package=package_name,
+        #     executable='battery_watcher_node',
+        #     parameters=[LaunchConfiguration('battery_config_file')],
+        #     remappings=[
+        #         ('/battery_voltage', battery_voltage_topic()),
+        #     ],
+        #     output='screen',
+        # ),
+    ])
     launch_description.add_action(group)
 
 

@@ -26,6 +26,9 @@ def declare_launch_args(launch_description: LaunchDescription):
     action = DeclareLaunchArgument(name='vehicle_name')
     launch_description.add_action(action)
 
+    action = DeclareLaunchArgument(name='use_manipulator')
+    launch_description.add_action(action)
+
 
 def generate_launch_description():
     pkg = 'buttons'
@@ -42,6 +45,7 @@ def generate_launch_description():
             'namespace': 'button_0',
             'vehicle_name': LaunchConfiguration('vehicle_name'),
             'button_config_file': button_config_file,
+            'use_manipulator': LaunchConfiguration('use_manipulator')
         }.items(),
     )
     launch_description.add_action(action)

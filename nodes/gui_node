@@ -18,6 +18,7 @@ from buttons import gui
 
 
 class GuiNode(Node):
+
     def __init__(self):
         super().__init__(node_name='buttons_gui')
         self.vehicle_names = []
@@ -29,8 +30,7 @@ class GuiNode(Node):
         self.main_widget = gui.MainWidget(self.vehicle_names)
         self.init_subscriptions()
         self.main_widget.overview_widgets[0].panel_grid.widgets[
-            0
-        ].enable_flashing(True)
+            0].enable_flashing(True)
         self.main_widget.show()
 
     def init_subscriptions(self):
@@ -51,6 +51,12 @@ class GuiNode(Node):
                 Bool,
                 f'/{name}/arming_state',
                 partial(self.on_arming_state, i=i),
+                qos,
+            )
+            subs['manipulator_arming_state'] = self.create_subscription(
+                Bool,
+                f'/{name}/manipulator_arming_state',
+                partial(self.on_manipulator_arming_state, i=i),
                 qos,
             )
             self.subs[name] = subs
@@ -89,6 +95,10 @@ class GuiNode(Node):
         widget = self.main_widget.overview_widgets[i]
         widget.arming_state_update.emit(msg.data)
 
+    def on_manipulator_arming_state(self, msg: Bool, i):
+        widget = self.main_widget.overview_widgets[i]
+        widget.manipulator_arming_state_update.emit(msg.data)
+
 
 def ros_loop(node):
     rclpy.spin(node)
@@ -98,7 +108,7 @@ def main():
     app = QApplication(sys.argv)
     rclpy.init()
     node = GuiNode()
-    ros_thread = threading.Thread(target=ros_loop, args=(node,))
+    ros_thread = threading.Thread(target=ros_loop, args=(node, ))
     ros_thread.daemon = True
     ros_thread.start()
     exit(app.exec_())

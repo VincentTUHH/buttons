@@ -14,7 +14,6 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
-from ament_index_python.packages import get_package_share_path
 from launch_ros.actions import Node
 
 from launch import LaunchDescription
@@ -23,19 +22,20 @@ from launch.substitutions import LaunchConfiguration
 
 
 def declare_launch_args(launch_description: LaunchDescription):
-    pkg = 'buttons'
-    config_file = str(get_package_share_path(pkg) / 'config/gui_config.yaml')
-    action = DeclareLaunchArgument(
-        name='config_file', default_value=config_file
-    )
-    launch_description.add_action(action)
+    launch_description.add_action(
+        DeclareLaunchArgument(name='vehicle_names',
+                              default_value='[bluerov01, uuv02]'))
 
 
 def add_gui_node():
     return Node(
         package='buttons',
         executable='gui_node',
-        parameters=[LaunchConfiguration('config_file')],
+        parameters=[
+            {
+                'vehicle_names': LaunchConfiguration('vehicle_names')
+            },
+        ],
         output='screen',
     )
 
