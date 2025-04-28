@@ -51,6 +51,10 @@ class BuzzerInterfaceNode(Node):
             Button, 'button', self.on_button, 10
         )
 
+        self.button_sub = self.create_subscription(
+            Button, 'sos_buzzer', self.on_sos_buzzer, 10
+        )
+
         self.update_timer = self.create_timer(0.1, self.update)
         self.t_last_beep = self.get_clock().now().nanoseconds * 1e-9
         self.t_last_battery_update = self.t_last_beep
@@ -81,6 +85,10 @@ class BuzzerInterfaceNode(Node):
 
     def on_button(self, _):
         # avoid interrupting battery-low-alert
+        if not self.battery_low:
+            self.buzzer.blip()
+
+    def on_sos_buzzer(self, _):
         if not self.battery_low:
             self.buzzer.blip()
 
