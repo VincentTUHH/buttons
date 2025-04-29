@@ -21,10 +21,9 @@ import pigpio
 
 
 def synced(func):
-    def wrap(s, *args):
+    def wrap(s, *args, **kwargs):
         with s.lock:
-            func(s, *args)
-
+            func(s, *args, **kwargs)
     return wrap
 
 
