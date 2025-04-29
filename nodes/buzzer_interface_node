@@ -90,7 +90,7 @@ class BuzzerInterfaceNode(Node):
 
     def on_sos_buzzer(self, _):
         if not self.battery_low:
-            self.buzzer.blip()
+            self.buzzer.strong_blip(duration=0.2)
 
     def on_battery_state(self, msg: BatteryState):
         cell_voltage = min(msg.cell_voltage)

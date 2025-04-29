@@ -40,6 +40,10 @@ class Buzzer:
         self.pi.write(self.pin, pigpio.LOW)
 
     @synced
+    def strong_blip(self, duration=0.2):
+        self.high_pitch(duration)
+
+    @synced
     def high_pitch(self, duration=0.0):
         self.pi.set_PWM_frequency(self.pin, 4000)
         self.pi.set_PWM_dutycycle(self.pin, 128)
